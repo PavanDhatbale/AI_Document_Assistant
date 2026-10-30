@@ -1,0 +1,76 @@
+# Environment & Secret Files
+.env
+.env.local
+.env.*.local
+*.env
+*.key
+*.pem
+credentials.json
+
+# Maven & Java Build Outputs
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
+*.class
+*.jar
+*.war
+*.ear
+*.nar
+
+# Node & Frontend Build Outputs
+frontend/node_modules/
+frontend/dist/
+frontend/dist-ssr/
+frontend/.vite/
+frontend/.cache/
+frontend/build/
+frontend/coverage/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Uploaded Files & Local Document Storage (Never commit user data)
+storage/
+storage/uploads/
+uploads/
+data/
+*.log
+logs/
+
+# Ignore loose user PDF files, but preserve test fixtures
+*.pdf
+!src/test/resources/**/*.pdf
+
+# IDE & Editor Specific Files
+.idea/
+*.iml
+*.iws
+*.ipr
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.settings/
+.project
+.classpath
+.factorypath
+
+# OS Specific
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.stackdump
+[Dd]esktop.ini
+.DS_Store
+.AppleDouble
+.LSOverride
