@@ -20,6 +20,8 @@ spring:
       - org.springframework.ai.model.google.genai.autoconfigure.embedding.GoogleGenAiTextEmbeddingAutoConfiguration
 
 app:
+  google:
+    client-id: test-google-client-id.apps.googleusercontent.com
   jwt:
     secret: dGVzdC1zZWNyZXQta2V5LW1pbmltdW0tMjU2LWJpdHMtZXhhbXBsZQ==
     expiration-ms: 3600000

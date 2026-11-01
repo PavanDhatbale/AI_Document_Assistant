@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { Input } from '../components/common/Input';
 import { Button } from '../components/common/Button';
+import { GoogleAuthButton } from '../components/auth/GoogleAuthButton';
 import { Sparkles, Mail, Lock, User, Phone, AlertCircle } from 'lucide-react';
 
 export const RegisterPage: React.FC = () => {
@@ -176,6 +177,19 @@ export const RegisterPage: React.FC = () => {
             Create Account
           </Button>
         </form>
+
+        {/* Alternative Auth Provider Divider */}
+        <div className="relative my-6">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-slate-200" />
+          </div>
+          <div className="relative flex justify-center text-xs uppercase">
+            <span className="bg-white px-3 text-slate-400 font-medium">Or sign up with</span>
+          </div>
+        </div>
+
+        {/* Google Authentication */}
+        <GoogleAuthButton mode="signup" />
 
         {/* Footer Link */}
         <div className="mt-8 pt-6 border-t border-slate-100 text-center text-xs text-slate-500">

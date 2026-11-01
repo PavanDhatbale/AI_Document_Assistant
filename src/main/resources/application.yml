@@ -65,6 +65,8 @@ server:
 
 # --- Application Domain Configurations ---
 app:
+  google:
+    client-id: ${GOOGLE_CLIENT_ID:}
   jwt:
     secret: ${JWT_SECRET:}
     expiration-ms: ${JWT_EXPIRATION_MS:86400000} # 24 hours

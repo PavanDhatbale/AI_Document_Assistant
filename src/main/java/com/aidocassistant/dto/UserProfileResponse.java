@@ -15,17 +15,23 @@ public class UserProfileResponse {
     private String phoneNumber;
     private String role;
     private Instant createdAt;
+    private String authProvider = "LOCAL";
 
     public UserProfileResponse() {
     }
 
     public UserProfileResponse(UUID id, String email, String displayName, String phoneNumber, String role, Instant createdAt) {
+        this(id, email, displayName, phoneNumber, role, createdAt, "LOCAL");
+    }
+
+    public UserProfileResponse(UUID id, String email, String displayName, String phoneNumber, String role, Instant createdAt, String authProvider) {
         this.id = id;
         this.email = email;
         this.displayName = displayName;
         this.phoneNumber = phoneNumber;
         this.role = role;
         this.createdAt = createdAt;
+        this.authProvider = authProvider != null ? authProvider : "LOCAL";
     }
 
     public UUID getId() {
@@ -74,5 +80,13 @@ public class UserProfileResponse {
 
     public void setCreatedAt(Instant createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public String getAuthProvider() {
+        return authProvider;
+    }
+
+    public void setAuthProvider(String authProvider) {
+        this.authProvider = authProvider;
     }
 }

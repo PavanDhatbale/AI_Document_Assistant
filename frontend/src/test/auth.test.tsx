@@ -1,3 +1,4 @@
+import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
@@ -13,6 +14,7 @@ import { tokenManager } from '../api/client';
 vi.mock('../api/auth', () => ({
   authApi: {
     login: vi.fn(),
+    loginWithGoogle: vi.fn(),
     register: vi.fn(),
     getProfile: vi.fn(),
     logout: vi.fn(),
@@ -217,5 +219,146 @@ describe('Auth Layer and Protected Routes', () => {
     expect(screen.getByTestId('user-name')).toHaveTextContent('NONE');
     expect(tokenManager.getToken()).toBeNull();
     expect(authApi.logout).toHaveBeenCalled();
+  });
+
+  // 5. Google Authentication Integration Tests
+  it('renders Google authentication buttons on Login and Register pages', () => {
+    const { unmount } = render(
+      <MemoryRouter>
+        <ToastProvider>
+          <AuthProvider>
+            <LoginPage />
+          </AuthProvider>
+        </ToastProvider>
+      </MemoryRouter>
+    );
+
+    expect(screen.getByTestId('google-auth-button')).toBeInTheDocument();
+    expect(screen.getByText('Continue with Google')).toBeInTheDocument();
+
+    unmount();
+
+    render(
+      <MemoryRouter>
+        <ToastProvider>
+          <AuthProvider>
+            <RegisterPage />
+          </AuthProvider>
+        </ToastProvider>
+      </MemoryRouter>
+    );
+
+    expect(screen.getByTestId('google-auth-button')).toBeInTheDocument();
+    expect(screen.getByText('Sign up with Google')).toBeInTheDocument();
+  });
+
+  it('triggers Google login callback and stores authenticated session', async () => {
+    const mockGoogleUser = {
+      id: 'g-user-1',
+      email: 'google.user@example.com',
+      displayName: 'Google User',
+      role: 'ROLE_USER',
+      authProvider: 'GOOGLE',
+      createdAt: '2026-11-01T00:00:00Z',
+    };
+
+    (authApi.loginWithGoogle as any).mockResolvedValueOnce({
+      token: 'mock-google-jwt',
+      tokenType: 'Bearer',
+      expiresIn: 86400,
+      user: mockGoogleUser,
+    });
+
+    const GoogleTestComponent = () => {
+      const { user, isAuthenticated, loginWithGoogle } = useAuth();
+      return (
+        <div>
+          <span data-testid="auth-state">{isAuthenticated ? 'AUTHENTICATED' : 'ANONYMOUS'}</span>
+          <span data-testid="auth-email">{user?.email || 'NONE'}</span>
+          <span data-testid="auth-provider">{user?.authProvider || 'NONE'}</span>
+          <button
+            data-testid="trigger-google-btn"
+            onClick={() => loginWithGoogle('mock-id-token-xyz')}
+          >
+            Google Sign In
+          </button>
+        </div>
+      );
+    };
+
+    render(
+      <MemoryRouter>
+        <ToastProvider>
+          <AuthProvider>
+            <GoogleTestComponent />
+          </AuthProvider>
+        </ToastProvider>
+      </MemoryRouter>
+    );
+
+    expect(screen.getByTestId('auth-state')).toHaveTextContent('ANONYMOUS');
+
+    fireEvent.click(screen.getByTestId('trigger-google-btn'));
+
+    await waitFor(() => {
+      expect(authApi.loginWithGoogle).toHaveBeenCalledWith('mock-id-token-xyz');
+    });
+
+    expect(await screen.findByText('AUTHENTICATED')).toBeInTheDocument();
+    expect(screen.getByTestId('auth-email')).toHaveTextContent('google.user@example.com');
+    expect(screen.getByTestId('auth-provider')).toHaveTextContent('GOOGLE');
+  });
+
+  it('handles Google authentication conflict error gracefully', async () => {
+    const errorResponse = {
+      response: {
+        status: 409,
+        data: {
+          message:
+            'An account with this email already exists with password authentication. Please sign in with your email and password.',
+        },
+      },
+    };
+    (authApi.loginWithGoogle as any).mockRejectedValueOnce(errorResponse);
+
+    const GoogleConflictComponent = () => {
+      const { loginWithGoogle } = useAuth();
+      const [error, setError] = React.useState<string | null>(null);
+
+      const handleGoogle = async () => {
+        try {
+          await loginWithGoogle('conflict-id-token');
+        } catch (err: any) {
+          setError(
+            err.response?.data?.message || 'Conflict occurred'
+          );
+        }
+      };
+
+      return (
+        <div>
+          {error && <span data-testid="error-message">{error}</span>}
+          <button data-testid="test-conflict-btn" onClick={handleGoogle}>
+            Sign In with Google
+          </button>
+        </div>
+      );
+    };
+
+    render(
+      <MemoryRouter>
+        <ToastProvider>
+          <AuthProvider>
+            <GoogleConflictComponent />
+          </AuthProvider>
+        </ToastProvider>
+      </MemoryRouter>
+    );
+
+    fireEvent.click(screen.getByTestId('test-conflict-btn'));
+
+    expect(
+      await screen.findByText(/already exists with password authentication/i)
+    ).toBeInTheDocument();
   });
 });

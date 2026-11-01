@@ -5,6 +5,7 @@ export interface User {
   phoneNumber?: string | null;
   role: string;
   createdAt: string;
+  authProvider?: string;
 }
 
 export interface UserProfileResponse {
@@ -14,6 +15,7 @@ export interface UserProfileResponse {
   phoneNumber?: string | null;
   role: string;
   createdAt: string;
+  authProvider?: string;
 }
 
 export interface AuthResponse {
@@ -44,4 +46,8 @@ export interface ChangePasswordRequest {
   currentPassword: string;
   newPassword: string;
   confirmPassword: string;
+}
+
+export interface GoogleAuthRequest {
+  idToken: string;
 }

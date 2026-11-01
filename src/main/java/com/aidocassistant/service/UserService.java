@@ -5,6 +5,7 @@ import com.aidocassistant.dto.SimpleMessageResponse;
 import com.aidocassistant.dto.UpdateProfileRequest;
 import com.aidocassistant.dto.UserProfileResponse;
 import com.aidocassistant.exception.ResourceNotFoundException;
+import com.aidocassistant.model.AuthProvider;
 import com.aidocassistant.model.User;
 import com.aidocassistant.repository.UserRepository;
 import com.aidocassistant.security.SecurityUserPrincipal;
@@ -69,6 +70,11 @@ public class UserService {
     public SimpleMessageResponse changePassword(SecurityUserPrincipal principal, ChangePasswordRequest request) {
         User user = resolveAuthenticatedUser(principal);
 
+        // Accounts authenticated via Google cannot change local passwords
+        if (user.getPasswordHash() == null || user.getAuthProvider() == AuthProvider.GOOGLE) {
+            throw new IllegalArgumentException("Password changes are not available for accounts authenticated via Google");
+        }
+
         // 1. Verify that new password matches confirmation
         if (!request.getNewPassword().equals(request.getConfirmPassword())) {
             throw new IllegalArgumentException("New password and confirm password do not match");
@@ -107,7 +113,8 @@ public class UserService {
                 user.getDisplayName(),
                 user.getPhoneNumber(),
                 user.getRole().name(),
-                user.getCreatedAt()
+                user.getCreatedAt(),
+                user.getAuthProvider() != null ? user.getAuthProvider().name() : AuthProvider.LOCAL.name()
         );
     }
 }

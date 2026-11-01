@@ -2,6 +2,7 @@ package com.aidocassistant.controller;
 
 import com.aidocassistant.dto.AuthResponse;
 import com.aidocassistant.dto.ChangePasswordRequest;
+import com.aidocassistant.dto.GoogleAuthRequest;
 import com.aidocassistant.dto.LoginRequest;
 import com.aidocassistant.dto.RegisterRequest;
 import com.aidocassistant.dto.SimpleMessageResponse;
@@ -45,6 +46,12 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
         AuthResponse response = authService.login(request);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/google")
+    public ResponseEntity<AuthResponse> googleAuth(@Valid @RequestBody GoogleAuthRequest request) {
+        AuthResponse response = authService.authenticateWithGoogle(request.getIdToken());
         return ResponseEntity.ok(response);
     }
 

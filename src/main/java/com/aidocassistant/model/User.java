@@ -46,6 +46,10 @@ public class User {
     @Column(name = "role", length = 20, nullable = false)
     private UserRole role = UserRole.ROLE_USER;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "auth_provider", length = 20, nullable = false)
+    private AuthProvider authProvider = AuthProvider.LOCAL;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
@@ -124,6 +128,14 @@ public class User {
 
     public void setRole(UserRole role) {
         this.role = role != null ? role : UserRole.ROLE_USER;
+    }
+
+    public AuthProvider getAuthProvider() {
+        return authProvider;
+    }
+
+    public void setAuthProvider(AuthProvider authProvider) {
+        this.authProvider = authProvider != null ? authProvider : AuthProvider.LOCAL;
     }
 
     public Instant getCreatedAt() {
