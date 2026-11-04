@@ -31,6 +31,15 @@ class HealthControllerTest {
     }
 
     @Test
+    @DisplayName("GET /api/health/ready returns 200 OK with READY status without authentication")
+    void readinessCheck_returnsReadyStatusWithoutAuth() throws Exception {
+        mockMvc.perform(get("/api/health/ready")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("READY"));
+    }
+
+    @Test
     @DisplayName("Protected endpoint GET /api/documents rejects unauthenticated requests with 401")
     void protectedEndpoint_requiresAuthentication() throws Exception {
         mockMvc.perform(get("/api/documents")

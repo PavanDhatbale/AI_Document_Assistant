@@ -18,4 +18,9 @@ public class HealthController {
     public ResponseEntity<Map<String, String>> health() {
         return ResponseEntity.ok(Map.of("status", "UP"));
     }
+
+    @GetMapping("/ready")
+    public ResponseEntity<Map<String, String>> ready() {
+        return ResponseEntity.ok(Map.of("status", "READY"));
+    }
 }
