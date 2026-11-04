@@ -44,6 +44,7 @@ uploads/
 data/
 *.log
 logs/
+scratch/
 
 # Ignore loose user PDF files, but preserve test fixtures
 *.pdf

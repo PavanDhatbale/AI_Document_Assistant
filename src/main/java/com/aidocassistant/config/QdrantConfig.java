@@ -27,8 +27,21 @@ public class QdrantConfig {
             @Value("${spring.ai.vectorstore.qdrant.api-key:}") String apiKey,
             @Value("${app.qdrant.use-tls:false}") boolean useTls
     ) {
-        log.info("Configuring Qdrant gRPC client target: {}:{} (useTLS={})", host, port, useTls);
-        QdrantGrpcClient.Builder builder = QdrantGrpcClient.newBuilder(host, port, useTls);
+        String cleanHost = host != null ? host.trim() : "localhost";
+        if (cleanHost.startsWith("https://")) {
+            cleanHost = cleanHost.substring("https://".length());
+        } else if (cleanHost.startsWith("http://")) {
+            cleanHost = cleanHost.substring("http://".length());
+        }
+        if (cleanHost.endsWith("/")) {
+            cleanHost = cleanHost.substring(0, cleanHost.length() - 1);
+        }
+        if (cleanHost.contains(":")) {
+            cleanHost = cleanHost.substring(0, cleanHost.indexOf(':'));
+        }
+
+        log.info("Configuring Qdrant gRPC client target: {}:{} (useTLS={})", cleanHost, port, useTls);
+        QdrantGrpcClient.Builder builder = QdrantGrpcClient.newBuilder(cleanHost, port, useTls);
         if (apiKey != null && !apiKey.isBlank()) {
             builder.withApiKey(apiKey);
         }

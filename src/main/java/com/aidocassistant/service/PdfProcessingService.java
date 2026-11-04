@@ -22,7 +22,7 @@ public class PdfProcessingService {
 
     private static final Logger log = LoggerFactory.getLogger(PdfProcessingService.class);
 
-    private final FileStorageService fileStorageService;
+    private final StorageService fileStorageService;
 
     public record PageText(int pageNumber, String text) {
         public boolean hasText() {
@@ -30,8 +30,13 @@ public class PdfProcessingService {
         }
     }
 
+    @org.springframework.beans.factory.annotation.Autowired
+    public PdfProcessingService(StorageService storageService) {
+        this.fileStorageService = storageService;
+    }
+
     public PdfProcessingService(FileStorageService fileStorageService) {
-        this.fileStorageService = fileStorageService;
+        this((StorageService) fileStorageService);
     }
 
     /**

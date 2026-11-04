@@ -61,6 +61,9 @@ public class AiDocumentAssistantApplication {
             return loaded;
         }
 
+        // Snapshot system properties existing prior to reading .env (e.g. JVM -D command-line flags)
+        java.util.Set<String> preexistingProps = new java.util.HashSet<>(System.getProperties().stringPropertyNames());
+
         try (BufferedReader reader = new BufferedReader(
                 new InputStreamReader(new FileInputStream(envFile), StandardCharsets.UTF_8))) {
             String rawLine;
@@ -98,8 +101,9 @@ public class AiDocumentAssistantApplication {
                         }
                     }
 
-                    // Only set if not already defined in OS environment or JVM system properties
-                    if (System.getProperty(key) == null && System.getenv(key) == null) {
+                    // Only set if not already defined in OS environment or pre-existing JVM properties.
+                    // If defined multiple times within the .env file, the later definition takes precedence.
+                    if (!preexistingProps.contains(key) && System.getenv(key) == null) {
                         System.setProperty(key, val);
                         loaded.put(key, val);
                     }

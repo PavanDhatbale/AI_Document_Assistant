@@ -43,7 +43,7 @@ public class DocumentService {
 
     private final DocumentRepository documentRepository;
     private final UserRepository userRepository;
-    private final FileStorageService fileStorageService;
+    private final StorageService fileStorageService;
     private final DocumentChunkRepository documentChunkRepository;
     private final PdfProcessingService pdfProcessingService;
     private final DocumentChunker documentChunker;
@@ -58,7 +58,7 @@ public class DocumentService {
     public DocumentService(
             DocumentRepository documentRepository,
             UserRepository userRepository,
-            FileStorageService fileStorageService,
+            StorageService storageService,
             DocumentChunkRepository documentChunkRepository,
             PdfProcessingService pdfProcessingService,
             DocumentChunker documentChunker,
@@ -68,13 +68,27 @@ public class DocumentService {
     ) {
         this.documentRepository = documentRepository;
         this.userRepository = userRepository;
-        this.fileStorageService = fileStorageService;
+        this.fileStorageService = storageService;
         this.documentChunkRepository = documentChunkRepository;
         this.pdfProcessingService = pdfProcessingService;
         this.documentChunker = documentChunker;
         this.embeddingService = embeddingService;
         this.vectorStoreService = vectorStoreService;
         this.staleProcessingTimeoutMinutes = staleProcessingTimeoutMinutes > 0 ? staleProcessingTimeoutMinutes : 15;
+    }
+
+    public DocumentService(
+            DocumentRepository documentRepository,
+            UserRepository userRepository,
+            StorageService storageService,
+            DocumentChunkRepository documentChunkRepository,
+            PdfProcessingService pdfProcessingService,
+            DocumentChunker documentChunker,
+            EmbeddingService embeddingService,
+            VectorStoreService vectorStoreService
+    ) {
+        this(documentRepository, userRepository, storageService, documentChunkRepository,
+                pdfProcessingService, documentChunker, embeddingService, vectorStoreService, 15);
     }
 
     public DocumentService(
@@ -87,7 +101,7 @@ public class DocumentService {
             EmbeddingService embeddingService,
             VectorStoreService vectorStoreService
     ) {
-        this(documentRepository, userRepository, fileStorageService, documentChunkRepository,
+        this(documentRepository, userRepository, (StorageService) fileStorageService, documentChunkRepository,
                 pdfProcessingService, documentChunker, embeddingService, vectorStoreService, 15);
     }
 
@@ -119,8 +133,11 @@ public class DocumentService {
                     + duplicate.get().getOriginalFileName() + "')");
         }
 
-        // Store file with server-generated UUID filename outside public web root
-        String storageFileName = fileStorageService.storeFile(fileBytes);
+        // Store file with server-generated unique key outside public web root
+        String storageFileName = fileStorageService.storeFile(userId, fileBytes);
+        if (storageFileName == null) {
+            storageFileName = fileStorageService.storeFile(fileBytes);
+        }
 
         // Create document record in PENDING status (ready for ingestion pipeline)
         Document document = new Document(
@@ -166,6 +183,16 @@ public class DocumentService {
         Document document = documentRepository.findByIdAndUserId(documentId, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Document not found with ID: " + documentId));
         return DocumentResponse.fromEntity(document);
+    }
+
+    /**
+     * Loads the raw binary content of an owned document from the configured storage provider.
+     */
+    @Transactional(readOnly = true)
+    public byte[] downloadDocument(UUID userId, UUID documentId) {
+        Document document = documentRepository.findByIdAndUserId(documentId, userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Document not found with ID: " + documentId));
+        return fileStorageService.loadFile(document.getStorageFileName());
     }
 
     /**

@@ -176,6 +176,23 @@ public class DocumentController {
     }
 
     /**
+     * Downloads the raw binary content of an owned document.
+     * Returns 404 if the document does not exist or belongs to another user.
+     */
+    @GetMapping("/{id}/download")
+    public ResponseEntity<byte[]> downloadDocument(
+            @PathVariable("id") UUID id,
+            @AuthenticationPrincipal SecurityUserPrincipal principal
+    ) {
+        DocumentResponse metadata = documentService.getDocumentMetadata(principal.getId(), id);
+        byte[] content = documentService.downloadDocument(principal.getId(), id);
+        return ResponseEntity.ok()
+                .header(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + metadata.originalFileName() + "\"")
+                .contentType(MediaType.APPLICATION_PDF)
+                .body(content);
+    }
+
+    /**
      * Deletes an owned document and its associated file on disk.
      * Returns 404 if the document does not exist or belongs to another user.
      */

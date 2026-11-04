@@ -1,0 +1,11 @@
+.git
+.idea
+target
+storage
+scratch
+docs
+frontend
+*.md
+.env
+.env.*
+*.log
