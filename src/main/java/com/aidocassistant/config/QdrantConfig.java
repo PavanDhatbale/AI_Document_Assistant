@@ -10,6 +10,8 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.time.Duration;
+
 /**
  * Spring configuration providing the Qdrant gRPC client bean.
  */
@@ -25,7 +27,8 @@ public class QdrantConfig {
             @Value("${spring.ai.vectorstore.qdrant.host:localhost}") String host,
             @Value("${spring.ai.vectorstore.qdrant.port:6334}") int port,
             @Value("${spring.ai.vectorstore.qdrant.api-key:}") String apiKey,
-            @Value("${app.qdrant.use-tls:false}") boolean useTls
+            @Value("${app.qdrant.use-tls:false}") boolean useTls,
+            @Value("${app.qdrant.operation-timeout-seconds:30}") int timeoutSeconds
     ) {
         String cleanHost = host != null ? host.trim() : "localhost";
         if (cleanHost.startsWith("https://")) {
@@ -40,11 +43,18 @@ public class QdrantConfig {
             cleanHost = cleanHost.substring(0, cleanHost.indexOf(':'));
         }
 
-        log.info("Configuring Qdrant gRPC client target: {}:{} (useTLS={})", cleanHost, port, useTls);
-        QdrantGrpcClient.Builder builder = QdrantGrpcClient.newBuilder(cleanHost, port, useTls);
+        log.info("Configuring Qdrant gRPC client target: {}:{} (useTLS={}, timeout={}s)", cleanHost, port, useTls, timeoutSeconds);
+        QdrantGrpcClient.Builder builder = QdrantGrpcClient.newBuilder(cleanHost, port, useTls, false);
+        if (timeoutSeconds > 0) {
+            builder.withTimeout(Duration.ofSeconds(timeoutSeconds));
+        }
         if (apiKey != null && !apiKey.isBlank()) {
             builder.withApiKey(apiKey);
         }
         return new QdrantClient(builder.build());
+    }
+
+    public QdrantClient qdrantClient(String host, int port, String apiKey, boolean useTls) {
+        return qdrantClient(host, port, apiKey, useTls, 30);
     }
 }
